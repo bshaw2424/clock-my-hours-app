@@ -67,6 +67,15 @@ button:focus-visible {
   }
 } */
 
+ul li {
+  list-style: none;
+}
+
+a,
+Link {
+  text-decoration: none;
+}
+
 .full-height {
   height: 100svh;
 }
@@ -93,4 +102,16 @@ button:focus-visible {
 
 .register-form h1 {
   margin-bottom: 2rem;
+}
+
+.description h2 {
+  text-transform: capitalize;
+}
+
+.feature-title {
+  font-size: 3rem;
+}
+
+.navbar-brand {
+  font-size: 2rem;
 }
