@@ -4,15 +4,15 @@ import axios from "axios";
 
 const NewShift = () => {
   const navigate = useNavigate();
-  const [csrfToken, setCsrfToken] = useState("");
 
+  const [csrfToken, setCsrfToken] = useState("");
   const [shiftData, setShiftData] = useState({
-    start_time: "",
-    end_time: "",
-    shift_type: "",
-    lunch_break: "",
+    startTime: "",
+    endTime: "",
+    shiftType: "",
+    lunchBreak: "",
     notes: "",
-    work_date: new Date().toISOString().split("T")[0], // Default to today's date
+    workDate: new Date().toISOString().split("T")[0], // Default to today's date
   });
 
   useEffect(() => {
@@ -29,14 +29,9 @@ const NewShift = () => {
     getCsrfToken();
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    setShiftData({ ...shiftData, [e.target.name]: e.target.value });
-  };
-
   const createNewShift = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/shifts/new/",
@@ -49,21 +44,26 @@ const NewShift = () => {
           withCredentials: true,
         },
       );
-      console.log("Token " + csrfToken);
-      console.log("Shift Created:", response.data);
-      setShiftData({
-        start_time: "",
-        end_time: "",
-        shift_type: "",
-        lunch_break: "",
-        notes: "",
-        work_date: new Date().toISOString().split("T")[0],
-      });
 
-      navigate("/dashboard"); // Redirect after successful submission
+      setShiftData({
+        startTime: "",
+        endTime: "",
+        shiftType: "",
+        lunchBreak: "",
+        notes: "",
+        workDate: new Date().toISOString().split("T")[0],
+      });
+      return response.data;
+      // navigate("/dashboard"); // Redirect after successful submission
     } catch (error) {
       console.error("Error Submitting Form:", error);
     }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    setShiftData({ ...shiftData, [e.target.name]: e.target.value });
   };
 
   return (
@@ -75,9 +75,9 @@ const NewShift = () => {
         <input
           type="time"
           className="form-control"
-          id="start_time"
-          name="start_time"
-          value={shiftData.start_time}
+          id="startTime"
+          name="startTime"
+          value={shiftData.startTime}
           onChange={handleChange}
           required
         />
@@ -88,9 +88,9 @@ const NewShift = () => {
         <input
           type="time"
           className="form-control"
-          id="end_time"
-          name="end_time"
-          value={shiftData.end_time}
+          id="endTime"
+          name="endTime"
+          value={shiftData.endTime}
           onChange={handleChange}
           required
         />
@@ -100,8 +100,8 @@ const NewShift = () => {
         <label htmlFor="shift_type">Shift Type</label>
         <select
           className="form-select"
-          name="shift_type"
-          value={shiftData.shift_type}
+          name="shiftType"
+          value={shiftData.shiftType}
           onChange={handleChange}
           required
         >
@@ -119,8 +119,8 @@ const NewShift = () => {
         <label htmlFor="lunch_break">Lunch Break</label>
         <select
           className="form-select"
-          name="lunch_break"
-          value={shiftData.lunch_break}
+          name="lunchBreak"
+          value={shiftData.lunchBreak}
           onChange={handleChange}
           required
         >
