@@ -115,3 +115,78 @@ Link {
 .navbar-brand {
   font-size: 2rem;
 }
+
+/* sliding nav */
+/* Styles for Sidebar */
+/* ======= Desktop Sidebar (Always Visible) ======= */
+/* Sidebar Container */
+.sidebar-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Sidebar Stays Inside Dashboard */
+.sidebar {
+  height: 100%;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease-in-out;
+  /* padding: 5px; */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Default: Desktop Full Width */
+.sidebar.open {
+  width: 250px;
+}
+
+/* Mobile/Tablet: Collapsed (Icons Only) */
+.sidebar.collapsed {
+  width: 60px;
+}
+
+/* Sidebar Items */
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+/* Sidebar Items (Icons & Text) */
+.sidebar li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+/* Sidebar Icons */
+.sidebar li svg {
+  min-width: 24px;
+  margin-right: 10px;
+}
+
+/* Mobile Only: Hamburger Button */
+.hamburger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+/* Remove Hamburger from Desktop */
+@media (min-width: 1024px) {
+  .hamburger-btn {
+    display: none;
+  }
+}
+
+/* company dropdown */
+.dropdown {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.dropdown.open {
+  max-height: 100px; /* Adjust based on content height */
+}
