@@ -179,14 +179,3 @@ Link {
     display: none;
   }
 }
-
-/* company dropdown */
-.dropdown {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
-}
-
-.dropdown.open {
-  max-height: 100px; /* Adjust based on content height */
-}
