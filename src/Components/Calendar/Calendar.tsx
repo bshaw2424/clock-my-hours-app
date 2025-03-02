@@ -3,8 +3,9 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import EventModal from "../Modal";
+import NewShift from "../Forms/NewShift";
+import { useCompany } from "../../Context/CompanyContext";
 
 interface Event {
   title: string;
@@ -13,6 +14,8 @@ interface Event {
 }
 
 const Calendar = ({ company_title }) => {
+  const { companyData, selectedCompany, setSelectedCompany } = useCompany();
+  console.log("hellloooo " + company_title);
   const [events, setEvents] = useState<Event[]>([]);
   // [
   //   {
@@ -33,6 +36,7 @@ const Calendar = ({ company_title }) => {
   // ];
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
+  const [showForm, setShowForm] = useState(false);
 
   const handleDateSelect = (selectInfo: string) => {
     const selectedDate = selectInfo.startStr.split("T")[0];
@@ -47,28 +51,38 @@ const Calendar = ({ company_title }) => {
 
   return (
     <section className="mt-5 p-0">
-      <h1 className="text-center my-3 bg-grey">{company_title}</h1>
       <div className="m-3">
-        <div className="mb-3">
-          <Link to="/newShift" className="btn btn-primary">
-            Add Shift
-          </Link>
-        </div>
+        {!showForm ? (
+          <div>
+            <div className="mb-3 d-flex justify-content-center ">
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className="btn btn-primary"
+              >
+                Add Shift
+              </button>
+              <h1 className="text-center bg-grey text-center">
+                {company_title}
+              </h1>
+            </div>
 
-        {/* FullCalendar Component */}
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            start: "today prev,next",
-            center: "title",
-            end: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          selectable={true}
-          select={handleDateSelect}
-          height={600}
-          events={events}
-        />
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={{
+                start: "today prev,next",
+                center: "title",
+                end: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              selectable={true}
+              select={handleDateSelect}
+              height={600}
+              events={events}
+            />
+          </div>
+        ) : (
+          <NewShift />
+        )}
         {/* Render Event Modal Only When a Date is Selected */}
         {selectedDate && (
           <EventModal
