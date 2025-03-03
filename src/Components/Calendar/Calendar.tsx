@@ -5,7 +5,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { useState } from "react";
 import EventModal from "../Modal";
 import NewShift from "../Forms/NewShift";
-import { useCompany } from "../../Context/CompanyContext";
+// import { useCompany } from "../../Context/CompanyContext";
 
 interface Event {
   title: string;
@@ -13,8 +13,13 @@ interface Event {
   end: string;
 }
 
-const Calendar = ({ company_title }) => {
-  const { companyData, selectedCompany, setSelectedCompany } = useCompany();
+interface CompanyTitle {
+  company_title: string;
+}
+
+const Calendar = ({ company_title }: CompanyTitle) => {
+  // const { companyData, selectedCompany, setSelectedCompany } = useCompany();
+
   console.log("hellloooo " + company_title);
   const [events, setEvents] = useState<Event[]>([]);
   // [
@@ -54,16 +59,14 @@ const Calendar = ({ company_title }) => {
       <div className="m-3">
         {!showForm ? (
           <div>
-            <div className="mb-3 d-flex justify-content-center ">
+            <div className="mb-5 d-flex">
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="btn btn-primary"
+                className="btn btn-primary w-25"
               >
                 Add Shift
               </button>
-              <h1 className="text-center bg-grey text-center">
-                {company_title}
-              </h1>
+              <h1 className="bg-grey w-100 text-center p-0">{company_title}</h1>
             </div>
 
             <FullCalendar
@@ -81,7 +84,7 @@ const Calendar = ({ company_title }) => {
             />
           </div>
         ) : (
-          <NewShift />
+          <NewShift title={company_title} showForm={setShowForm} />
         )}
         {/* Render Event Modal Only When a Date is Selected */}
         {selectedDate && (
