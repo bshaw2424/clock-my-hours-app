@@ -7,22 +7,21 @@ import EventModal from "../Modal";
 import NewShift from "../Forms/NewShift";
 // import { useCompany } from "../../Context/CompanyContext";
 
-interface Event {
-  title: string;
-  start: string;
-  end: string;
-}
+// interface Event {
+//   title: string;
+//   start: string;
+//   end: string;
+// }
 
 interface CompanyTitle {
   company_title: string;
+  events: [];
 }
 
-const Calendar = ({ company_title }: CompanyTitle) => {
+const Calendar = ({ company_title, events }: CompanyTitle) => {
   // const { companyData, selectedCompany, setSelectedCompany } = useCompany();
 
-  console.log("hellloooo " + company_title);
-  const [events, setEvents] = useState<Event[]>([]);
-  // [
+  // const event = [
   //   {
   //     title: "Overnight Shift",
   //     start: "2025-01-30T23:00:00",
@@ -38,7 +37,14 @@ const Calendar = ({ company_title }: CompanyTitle) => {
   //     start: "2025-01-30T15:00:00",
   //     end: "2025-01-30T16:00:00",
   //   },
+  //   {
+  //     title: "Work On Coding",
+  //     start: "2025-03-12T15:00:00",
+  //     end: "2025-03-12T16:00:00",
+  //   },
   // ];
+
+  // const [events, setEvents] = useState<Event[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -84,8 +90,9 @@ const Calendar = ({ company_title }: CompanyTitle) => {
             />
           </div>
         ) : (
-          <NewShift title={company_title} showForm={setShowForm} />
+          <NewShift title={company_title} showFormState={setShowForm} />
         )}
+
         {/* Render Event Modal Only When a Date is Selected */}
         {selectedDate && (
           <EventModal
