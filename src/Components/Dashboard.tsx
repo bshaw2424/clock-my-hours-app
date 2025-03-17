@@ -15,13 +15,25 @@ interface Company {
   created_on: Date;
 }
 
+interface Shifts {
+  notes: string;
+  start_time: string;
+  end_time: string;
+  work_date: string;
+}
+
 const Dashboard = () => {
   const [companyDetails, setCompanyDetails] = useState<Company[]>([]);
   const [monthlyShifts, setMonthlyShifts] = useState();
+  const [shifts, setShifts] = useState<Shifts[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date())
+  // const [shifts, setShifts] = useState<Shifts[]>([])
   // const [selectedCompany, setSelectedCompany] = useState<Company | null>(null); // Store full company object
 
   const { companyData, selectedCompany, setSelectedCompany } = useCompany();
-  // const [monthlyShifts, setMonthlyShifts] = useState();
+  const formatEventDateTime = (time: string, date: string) => {
+    return `${date}T${time}`;
+  };
 
   useEffect(() => {
     const getCompanyData = async () => {
@@ -32,10 +44,6 @@ const Dashboard = () => {
 
         setCompanyDetails(response.data.data);
 
-        // // Set the first company as default
-        // if (response.data.data.length > 0) {
-        //   setSelectedCompany(response.data.data[0]);
-        // }
       } catch (error) {
         console.error("Error fetching company details:", error);
       }
@@ -44,7 +52,7 @@ const Dashboard = () => {
     getCompanyData();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     const getCompanyMonthData = async () => {
       try {
         const response = await axios.get(
@@ -53,12 +61,32 @@ const Dashboard = () => {
             withCredentials: true,
           },
         );
-        setMonthlyShifts(response.data.shifts);
+        
+        const getShifts = response.data.shifts.map((shift: Shifts) => ({
+          title: shift.notes,
+          start: formatEventDateTime(shift.start_time, shift.work_date),
+          end: formatEventDateTime(shift.end_time, shift.work_date),
+        }));
 
-        // // Set the first company as default
-        // if (response.data.shifts.length > 0) {
-        //   setSelectedCompany(response.data.shifts[0]);
-        // }
+         const month = currentDate.getMonth()
+        const year = currentDate.getFullYear()
+        const day = currentDate.getDate()
+        const say = new Date(year, month, day).toISOString()
+
+        const details = companyDetails.find(company => company?.id === selectedCompany?.id)
+        
+        const startTime = new Date(year, month, details.pay_period_start).toISOString()
+        const endTime = new Date(year, month, details.pay_period_end).toISOString()
+        const a = new Date(year, month, details.pay_period_end + 1).toISOString()
+        const a_end = new Date(year, month + 1, 0).toISOString()
+        console.log(startTime, endTime, a, a_end)
+
+        
+
+        
+    
+        setMonthlyShifts(response.data.shifts);
+        setShifts(getShifts);
       } catch (error) {
         console.error("Error fetching company details:", error);
       }
@@ -66,8 +94,6 @@ const Dashboard = () => {
 
     getCompanyMonthData();
   }, [selectedCompany?.id]);
-
-  console.log(monthlyShifts);
 
   return (
     <section style={{ minHeight: "100vh" }} className="container">
@@ -77,6 +103,7 @@ const Dashboard = () => {
           gridTemplateColumns: "1fr 4fr 2fr",
           gap: "10px",
         }}
+        className="mb-5"
       >
         {/* Pass company list and selection handler */}
         <VerticalNav
@@ -84,15 +111,18 @@ const Dashboard = () => {
           setSelectedCompany={setSelectedCompany}
         />
         {/* Pass the full company object to Calendar */}
-        {selectedCompany && <Calendar company_title={selectedCompany.name} />}
-        <aside className="d-flex flex-column">
+        {selectedCompany && (
+          <Calendar company_title={selectedCompany.name} events={shifts} />
+        )}
+
+        <div className="d-flex flex-column w-100 border border-1 border-dark mt-4">
           <DataDisplay title="Shift Data" />
           <DataDisplay
             title="Company Data"
             shiftData={monthlyShifts}
             message="Hours For Pay Period"
           />
-        </aside>
+        </div>
       </div>
     </section>
   );
