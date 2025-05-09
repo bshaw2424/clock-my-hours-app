@@ -1,9 +1,9 @@
 import PayPeriods from "../PayPeriods";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import MonthYearDisplay from "./MonthYearDisplay";
 import { useCompany } from "../../Context/CompanyContext";
-import { FaStar } from "react-icons/fa"; // Star icon for active pay period
+import { FaStar } from "react-icons/fa";
 import {
   getWeeklyPayPeriodsForYear,
   getBiweeklyPayPeriodsForYear,
@@ -19,23 +19,20 @@ interface CompanyTitle {
 
 const Calendar = ({ company_title, name }: CompanyTitle) => {
   const { companyData, selectedCompany } = useCompany();
-
   const [payFrequency, setPayFrequency] = useState(
     selectedCompany?.pay_frequency,
   );
-
+  const [selectedPayPeriod, setSelectedPayPeriod] = useState(null);
+  const [selectedPayPeriodId, setSelectedPayPeriodId] = useState(null);
   const [companyShifts, setCompanyShifts] = useState([]);
-  const [overtimeShifts, setOvertimeShifts] = useState(false);
   const [companyRates, setCompanyRates] = useState([]);
-  const [rates, setRates] = useState(companyRates?.pay_rate);
   const [originalShifts, setOriginalShifts] = useState([]);
-  const [target, setTarget] = useState();
+  const [target, setTarget] = useState("default");
 
   useEffect(() => {
     setPayFrequency(selectedCompany?.pay_frequency);
   }, [selectedCompany?.id]);
 
-  // Ensure pay periods are calculated correctly
   const year = new Date().getFullYear();
   const month = new Date().getMonth();
   const day = selectedCompany?.pay_period_start;
@@ -51,65 +48,117 @@ const Calendar = ({ company_title, name }: CompanyTitle) => {
   const biWeeklyPayPeriods = selectedCompany
     ? getBiweeklyPayPeriodsForYear(getCompanyDate)
     : [];
-
   const weeklyPayPeriods = selectedCompany
     ? getWeeklyPayPeriodsForYear(getCompanyDate)
     : [];
 
   useEffect(() => {
     const getCompanyShifts = async () => {
-      const companyShiftsTableResponse = await axios.get(
-        "http://localhost:8000/shifts/",
-        {
+      try {
+        const response = await axios.get("http://localhost:8000/shifts/", {
           withCredentials: true,
-        },
-      );
-      const companyShiftTableData = await companyShiftsTableResponse.data
-        .shifts;
-      setCompanyShifts(companyShiftTableData);
-      setOriginalShifts(companyShiftTableData);
+        });
+        const data = response.data.shifts;
+        setOriginalShifts(data);
+      } catch (error) {
+        console.error("Error fetching shifts:", error);
+      }
     };
     getCompanyShifts();
   }, []);
 
   useEffect(() => {
     const getCompanyPayRate = async () => {
-      const getRate = await axios.get("http://localhost:8000/companies/", {
-        withCredentials: true,
-      });
-      setCompanyRates(
-        getRate.data.data.find(company => company.id === selectedCompany?.id),
-      );
+      try {
+        const response = await axios.get("http://localhost:8000/companies/", {
+          withCredentials: true,
+        });
+        setCompanyRates(
+          response.data.data.find(c => c.id === selectedCompany?.id),
+        );
+      } catch (error) {
+        console.error("Error fetching company rates:", error);
+      }
     };
     getCompanyPayRate();
-  }, [selectedCompany.id]);
+  }, [selectedCompany?.id]);
 
   const overtimeTypes = ["double", "triple", "timeHalf"];
 
   const getShiftTypes = e => {
-    const selectedType = e.target.value;
-    setTarget(selectedType);
+    const newTarget = e.target.value;
+    setTarget(newTarget);
 
-    // Always start from the original (unfiltered) data
+    // Reset the pay period selection when filtering by shift type
+    if (newTarget !== target) {
+      setSelectedPayPeriod(null);
+      setSelectedPayPeriodId(null);
+    }
+  };
+
+  const handleSelectPayPeriod = (payPeriod, periodId) => {
+    setSelectedPayPeriod(payPeriod);
+    setSelectedPayPeriodId(periodId);
+    setTarget("default");
+  };
+
+  const [dateFilteredShifts, setDateFilteredShifts] = useState([]);
+
+  useEffect(() => {
+    if (!selectedCompany || !originalShifts.length) return;
+
     let filtered = originalShifts.filter(
-      shift => shift?.company_id === selectedCompany?.id,
+      shift => shift?.company_id === selectedCompany.id,
     );
 
-    if (selectedType === "overtime") {
-      filtered = filtered.filter(shift =>
-        overtimeTypes.includes(shift.shift_type),
-      );
-    } else if (selectedType === "all") {
-      // all - filtered for company
-    } else if (selectedType !== "") {
-      filtered = filtered.filter(shift => shift.shift_type === selectedType);
+    if (selectedPayPeriod && selectedPayPeriod.start && selectedPayPeriod.end) {
+      const periodStart = new Date(selectedPayPeriod.start);
+      const periodEnd = new Date(selectedPayPeriod.end);
+      periodStart.setHours(0, 0, 0, 0);
+      periodEnd.setHours(23, 59, 59, 999);
+
+      filtered = filtered.filter(shift => {
+        const dateField = shift.shift_date || shift.work_date;
+        const shiftDate = new Date(dateField);
+        return shiftDate >= periodStart && shiftDate <= periodEnd;
+      });
     }
 
-    setCompanyShifts(filtered);
+    setDateFilteredShifts(filtered);
+  }, [selectedPayPeriod, originalShifts, selectedCompany?.id]);
+
+  useEffect(() => {
+    let typeFiltered =
+      target === "all" || target === "default"
+        ? dateFilteredShifts
+        : dateFilteredShifts.filter(shift => shift.shift_type === target);
+    if (target === "overtime") {
+      typeFiltered = dateFilteredShifts.filter(shift =>
+        overtimeTypes.includes(shift.shift_type),
+      );
+    }
+    setCompanyShifts(typeFiltered);
+  }, [target, dateFilteredShifts]);
+
+  const calculatePayPeriodHours = useMemo(() => {
+    return companyShifts
+      .reduce((total, shift) => {
+        const workedHours = shift.worked_hours || 0;
+        const lunchBreak = shift.lunch_break || 0;
+        return total + (workedHours - lunchBreak);
+      }, 0)
+      .toFixed(1);
+  }, [companyShifts]);
+
+  // Function to reset filters
+  const resetFilters = () => {
+    setSelectedPayPeriod(null);
+    setSelectedPayPeriodId(null);
+    setTarget("default");
   };
 
   return (
-    <section className="mt-5 p-0  w-100 d-flex flex-column justify-content-center align-items-center">
+    <section className="mt-5 p-0 w-100 d-flex flex-column justify-content-center align-items-center">
       <div>
         <h1 className="bg-grey w-100 p-0 text-center">
           {company_title.toUpperCase()}
@@ -122,43 +171,89 @@ const Calendar = ({ company_title, name }: CompanyTitle) => {
       <div style={{ width: "100%" }}>
         <MonthYearDisplay />
       </div>
+
       <section className="d-flex justify-content-between align-items-center w-100">
         <div>
           {payFrequency === "weekly" && (
-            <PayPeriods payPeriodType={weeklyPayPeriods} />
+            <PayPeriods
+              payPeriodType={weeklyPayPeriods}
+              onSelectPayPeriod={handleSelectPayPeriod}
+              selectedPeriodId={selectedPayPeriodId}
+            />
           )}
           {payFrequency === "bi-weekly" && (
-            <PayPeriods payPeriodType={biWeeklyPayPeriods} />
+            <PayPeriods
+              payPeriodType={biWeeklyPayPeriods}
+              onSelectPayPeriod={handleSelectPayPeriod}
+              selectedPeriodId={selectedPayPeriodId}
+            />
           )}
           {payFrequency === "semi-monthly" && (
-            <PayPeriods payPeriodType={semiMonthlyPeriods} />
+            <PayPeriods
+              payPeriodType={semiMonthlyPeriods}
+              onSelectPayPeriod={handleSelectPayPeriod}
+              selectedPeriodId={selectedPayPeriodId}
+            />
           )}
         </div>
+
         <p>
-          Pay Period Hours: <span>0</span>
+          Pay Period Hours: <span>{calculatePayPeriodHours}</span>
         </p>
 
-        <select name="changeShiftType" id="shiftType" onChange={getShiftTypes}>
-          <option value="all" selected>
-            All
-          </option>
-          <option value="overtime">Overtime</option>
-          <option value="regular">Regular</option>
-          <option value="vacation">Vacation</option>
-          <option value="sick">Sick</option>
-          <option value="holiday">Holiday</option>
-          <option value="giveaway">Giveaway</option>
-        </select>
+        <div className="d-flex gap-2 align-items-center">
+          <select
+            name="changeShiftType"
+            id="shiftType"
+            onChange={getShiftTypes}
+            value={target}
+            className="form-select"
+            style={{ maxWidth: "200px" }}
+          >
+            <option value="default">Filter By Shift Type</option>
+            <option value="all">All</option>
+            <option value="overtime">Overtime</option>
+            <option value="regular">Regular</option>
+            <option value="vacation">Vacation</option>
+            <option value="sick">Sick</option>
+            <option value="holiday">Holiday</option>
+            <option value="giveaway">Giveaway</option>
+          </select>
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            onClick={resetFilters}
+          >
+            Reset Filters
+          </button>
+        </div>
       </section>
+
+      {selectedPayPeriod && (
+        <div className="mt-2 mb-2 text-center">
+          <small className="text-muted">
+            Selected Pay Period:{" "}
+            {new Date(selectedPayPeriod.start).toLocaleDateString()} -{" "}
+            {new Date(selectedPayPeriod.end).toLocaleDateString()}
+          </small>
+        </div>
+      )}
+
       {companyShifts.length === 0 ? (
         <div className="border border-1 w-100 py-3 mt-3">
-          <h2 className="text-center"> No {target} Shifts Available</h2>
+          <h2 className="text-center">
+            {selectedPayPeriod
+              ? `No ${
+                  target !== "default" ? target : ""
+                } Shifts Available for Selected Pay Period`
+              : "No Shifts Available"}
+          </h2>
         </div>
       ) : (
         <Shifts
           companyShifts={companyShifts}
           selectedCompanyId={selectedCompany?.id}
           companyRate={companyRates?.pay_rate}
+          selectedPayPeriod={selectedPayPeriod}
         />
       )}
     </section>
