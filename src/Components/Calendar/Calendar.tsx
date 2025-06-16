@@ -29,6 +29,15 @@ const Calendar = ({ company_title, name }: CompanyTitle) => {
   const [originalShifts, setOriginalShifts] = useState([]);
   const [target, setTarget] = useState("default");
 
+  const totalHoursCompleted = companyShifts
+    .filter(companyShift => companyShift?.is_completed)
+    .map(totals => totals.worked_hours - totals.lunch_break)
+    .reduce((total, amount) => (total += amount), 0);
+
+  const totalHours = companyShifts
+    .map(totals => totals.worked_hours - totals.lunch_break)
+    .reduce((total, amount) => (total += amount), 0);
+
   useEffect(() => {
     setPayFrequency(selectedCompany?.pay_frequency);
   }, [selectedCompany?.id]);
@@ -157,22 +166,27 @@ const Calendar = ({ company_title, name }: CompanyTitle) => {
     setTarget("default");
   };
 
+  const totalShiftGiveawayHours = companyShifts
+    .filter(company => company.shift_type === "giveaway")
+    .map(company => company.worked_hours - company.lunch_break)
+    .reduce((total, amount) => (total += amount), 0);
+
   return (
     <section className="mt-5 p-0 w-100 d-flex flex-column justify-content-center align-items-center">
       <div>
         <h1 className="bg-grey w-100 p-0 text-center">
           {company_title.toUpperCase()}
         </h1>
-        <p className="text-center">
+        {/* <p className="text-center">
           <FaStar className="active-icon me-2" />= Current Pay Period
-        </p>
+        </p> */}
       </div>
 
-      <div style={{ width: "100%" }}>
+      {/* <div style={{ width: "100%" }}>
         <MonthYearDisplay />
-      </div>
+      </div> */}
 
-      <section className="d-flex justify-content-between align-items-center w-100">
+      <section className="d-flex justify-content-between align-items-center w-100 border border-1 border-dark px-4 my-4 rounded-3">
         <div>
           {payFrequency === "weekly" && (
             <PayPeriods
@@ -197,9 +211,25 @@ const Calendar = ({ company_title, name }: CompanyTitle) => {
           )}
         </div>
 
-        <p>
-          Pay Period Hours: <span>{calculatePayPeriodHours}</span>
-        </p>
+        <div>
+          <h4>
+            Total Hours:{" "}
+            <span className="fw-light">
+              {totalHoursCompleted}
+              {/* / {totalHours} */}
+              {/* {calculatePayPeriodHours - totalShiftGiveawayHours} */}
+            </span>
+          </h4>
+        </div>
+
+        <div>
+          <p style={{ fontSize: "1.3rem" }}>
+            <span>
+              <strong>Pay Rate: </strong>
+            </span>
+            ${selectedCompany?.pay_rate.toFixed(2)}
+          </p>
+        </div>
 
         <div className="d-flex gap-2 align-items-center">
           <select
@@ -220,7 +250,7 @@ const Calendar = ({ company_title, name }: CompanyTitle) => {
             <option value="giveaway">Giveaway</option>
           </select>
           <button
-            className="btn btn-outline-secondary btn-sm"
+            className="btn btn-outline-secondary btn-sm w-100"
             onClick={resetFilters}
           >
             Reset Filters
@@ -228,25 +258,18 @@ const Calendar = ({ company_title, name }: CompanyTitle) => {
         </div>
       </section>
 
-      {selectedPayPeriod && (
-        <div className="mt-2 mb-2 text-center">
-          <small className="text-muted">
-            Selected Pay Period:{" "}
-            {new Date(selectedPayPeriod.start).toLocaleDateString()} -{" "}
-            {new Date(selectedPayPeriod.end).toLocaleDateString()}
-          </small>
-        </div>
-      )}
-
       {companyShifts.length === 0 ? (
-        <div className="border border-1 w-100 py-3 mt-3">
-          <h2 className="text-center">
-            {selectedPayPeriod
-              ? `No ${
-                  target !== "default" ? target : ""
-                } Shifts Available for Selected Pay Period`
-              : "No Shifts Available"}
-          </h2>
+        <div className="d-flex flex-column min-vh-100">
+          {/* Main Content */}
+          <div className="flex-grow-1 d-flex justify-content-center align-items-center">
+            <h2 className="text-center align-self-start mt-5">
+              {selectedPayPeriod
+                ? `No ${
+                    target !== "default" ? target : ""
+                  } Shifts Available for Selected Pay Period`
+                : "No Shifts Available"}
+            </h2>
+          </div>
         </div>
       ) : (
         <Shifts
