@@ -1,0 +1,209 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1 {
+  font-size: 3.2rem;
+  font-family: "Roboto", sans-serif;
+}
+
+a {
+  font-weight: 500;
+  color: hsla(216, 100%, 54%, 1);
+  text-decoration: inherit;
+}
+a:hover {
+  color: hsla(216, 100%, 54%, 0.75);
+}
+
+ul li {
+  list-style: none;
+}
+
+a,
+Link {
+  text-decoration: none;
+}
+
+header {
+  background-color: #5b5353;
+  color: #fff;
+  padding-top: 3rem;
+}
+
+.shift-table-data td {
+  cursor: pointer;
+}
+
+footer {
+  height: auto;
+  min-height: 0;
+  padding: 1rem 0;
+}
+
+.calendar-heading {
+  font-size: 3.2rem;
+}
+
+.featured-section {
+  background-color: #f8f9fb;
+}
+
+.btn {
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  */
+  transition: box-shadow 0.3s ease;
+}
+
+.btn:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5); /* deeper shadow on hover */
+}
+
+.pay-divs:hover {
+  cursor: pointer;
+}
+
+.table-info {
+  height: 0;
+}
+
+.datepicker-wrapper {
+  position: absolute;
+  top: 40px; /* Adjust for spacing */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999; /* Ensure it's above other content */
+  background: white;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+/* Custom styles for the disabled button */
+.btn.disabled {
+  background-color: #333;
+  color: #fff;
+  cursor: not-allowed; /* Prevents click events */
+}
+
+.full-height {
+  height: 100svh;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-content-between {
+  display: flex;
+  justify-content: space-between;
+}
+
+.create-shift-form {
+  padding: 1rem 3rem;
+  outline: 1px solid #333;
+}
+
+.form-control {
+  margin-bottom: 0.75rem;
+}
+
+.register-form h1 {
+  margin-bottom: 2rem;
+}
+
+.description h2 {
+  text-transform: capitalize;
+}
+
+.feature-title {
+  font-size: 3rem;
+}
+
+.navbar-brand {
+  font-size: 2rem;
+}
+
+/* sliding nav */
+/* Styles for Sidebar */
+/* ======= Desktop Sidebar (Always Visible) ======= */
+/* Sidebar Container */
+.sidebar-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Sidebar Stays Inside Dashboard */
+.sidebar {
+  height: 100%;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease-in-out;
+  /* padding: 5px; */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Default: Desktop Full Width */
+.sidebar.open {
+  width: 250px;
+}
+
+/* Mobile/Tablet: Collapsed (Icons Only) */
+.sidebar.collapsed {
+  width: 60px;
+}
+
+/* Sidebar Items */
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+/* Sidebar Items (Icons & Text) */
+.sidebar li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+/* Sidebar Icons */
+.sidebar li svg {
+  min-width: 24px;
+  margin-right: 10px;
+}
+
+/* Mobile Only: Hamburger Button */
+.hamburger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+/* Remove Hamburger from Desktop */
+@media (min-width: 1024px) {
+  .hamburger-btn {
+    display: none;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+@import "scss/dashboard/dashboard_styles";
